@@ -1,0 +1,147 @@
+.portfolio { padding-bottom: var(--gutter); }
+
+.capture-label,
+.chapter-mode {
+  display: flex;
+  align-items: center;
+  gap: .52rem;
+  color: #f2b69b;
+  font: 550 .74rem var(--font-mono);
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.capture-label {
+  position: absolute;
+  z-index: 6;
+  top: 1.8rem;
+  left: 2.1rem;
+  opacity: calc(1 - var(--copy-fade));
+}
+.capture-label i { width: .42rem; height: .42rem; border-radius: 50%; background: #f98f71; }
+.hero--camera[data-unfolded="true"] .capture-label { visibility: hidden; }
+
+.camera-chapter {
+  --chapter-padding: clamp(1.5rem, 4.7vw, 5rem);
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  margin-block-start: clamp(.9rem, 2vw, 2rem);
+  padding: var(--chapter-padding);
+  border-radius: .76rem;
+  color: #faf3e8;
+  background-color: #201d1b;
+  box-shadow: inset 0 0 0 1px #fff1;
+}
+.chapter-corners { z-index: 3; inset: 1rem; opacity: .52; }
+.chapter-mode { margin-bottom: clamp(1.3rem, 3vw, 2.55rem); }
+
+.viewfinder-playback { background: radial-gradient(ellipse at 90% 0%, #482a20, #211d1b 50%, #1b1918 90%); }
+.viewfinder-playback .work-heading h2 em { margin-inline-start: .065em; color: #f6a188; }
+.viewfinder-playback .work-filter { color: #fff1e7; border-color: #ffffff48; }
+.viewfinder-playback .work-filter:hover { border-color: #f4ab90; }
+.viewfinder-playback .work-filter[aria-pressed="true"] { color: #2c1c15; background: #f6a188; border-color: #f6a188; }
+.viewfinder-playback .project-category { color: #f6ad91; }
+.viewfinder-playback .project-info,
+.viewfinder-playback .project-expand,
+.viewfinder-playback .no-projects { border-color: #ffffff35; }
+.viewfinder-playback .no-projects { color: #e1d3c8; }
+.viewfinder-playback .project-button:hover .project-expand,
+.viewfinder-playback .project-button:focus-visible .project-expand { background: #f6a188; border-color: #f6a188; color: #221911; }
+.viewfinder-playback .project-corners { z-index: 2; inset: .75rem; opacity: .65; }
+.viewfinder-playback .project-corners i { width: .5rem; height: .5rem; }
+
+.viewfinder-studio { background: radial-gradient(ellipse at 5% 90%, #3e2921, #201d1b 58%); }
+.viewfinder-studio .studio-layout {
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 1fr);
+  align-items: stretch;
+  gap: clamp(1.5rem, 4vw, 4.8rem);
+  padding-block: 0;
+}
+.focus-screen {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  min-height: 25rem;
+  border: 1px solid #ebd2c04a;
+  border-radius: .46rem;
+  background: #30251f;
+}
+.focus-screen img { object-fit: cover; object-position: 73% 39%; }
+.focus-screen::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 49% 40%, transparent 25%, #1e171658 79%);
+}
+.focus-reticle {
+  z-index: 2;
+  position: absolute;
+  inset: 32% 35% 48% 41%;
+  opacity: .87;
+}
+.focus-reticle i { border-color: #ffc4ab; }
+.studio-details { display: grid; align-content: center; gap: clamp(1.4rem, 3vw, 2.45rem); }
+.viewfinder-studio .studio-intro h2 { font-size: clamp(2.65rem, 4.15vw, 5.15rem); }
+.viewfinder-studio .studio-intro > p { margin-top: .85rem; }
+
+.viewfinder-contact { background: #311d17; }
+.contact-exposure,
+.contact-exposure::after { position: absolute; inset: 0; pointer-events: none; }
+.contact-exposure { z-index: -2; }
+.contact-exposure img { object-fit: cover; object-position: 68% 52%; }
+.contact-exposure::after {
+  content: "";
+  background: linear-gradient(95deg, #201616f5 0%, #301713d7 61%, #31191494 100%),
+    linear-gradient(0deg, #221512ae, transparent 37%);
+}
+.viewfinder-contact .contact-layout { padding-block: clamp(.75rem, 2.1vw, 2.2rem) clamp(1.85rem, 4.8vw, 4.3rem); }
+.viewfinder-contact .contact-layout h2 em { color: #f6a188; }
+.viewfinder-contact .contact-action > .button { color: #2c1c15; background: #ff916e; font-weight: 680; }
+.viewfinder-contact .contact-action > .button:hover { background: #ffac92; }
+.viewfinder-contact .contact-links,
+.viewfinder-contact .footer-end > span,
+.viewfinder-contact .footer-end > a:last-child { color: #ead8ca; }
+.viewfinder-contact .contact-links a:hover,
+.viewfinder-contact .footer-end > a:last-child:hover { color: #ffac92; }
+.viewfinder-contact .footer-end { border-color: #ffffff36; padding-bottom: 0; }
+.viewfinder-contact .footer-end .wordmark-symbol { color: #f6a188; }
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) and (animation-range: entry) {
+    .focus-screen { view-timeline-name: --focus-screen; }
+    .focus-screen img {
+      animation: focus-prime auto var(--ease) both;
+      animation-timeline: --focus-screen;
+      animation-range: entry 0% cover 50%;
+    }
+    .focus-reticle {
+      animation: focus-lock auto var(--ease) both;
+      animation-timeline: --focus-screen;
+      animation-range: entry 12% cover 45%;
+    }
+  }
+}
+
+@keyframes focus-prime {
+  from { transform: scale(1.13); }
+  to { transform: scale(1); }
+}
+@keyframes focus-lock {
+  from { transform: scale(1.62); opacity: .28; }
+  to { transform: scale(1); opacity: .87; }
+}
+
+@media (max-width: 760px) {
+  .capture-label { left: 1.5rem; top: 1.46rem; }
+  .chapter-corners { inset: .61rem; }
+  .viewfinder-studio .studio-layout { grid-template-columns: 1fr; }
+  .focus-screen { min-height: 0; aspect-ratio: 1.48; }
+}
+@media (max-width: 565px) {
+  .camera-chapter { --chapter-padding: 1.35rem; }
+  .capture-label, .chapter-mode { font-size: .65rem; }
+  .viewfinder-playback .display-heading { font-size: clamp(2.65rem, 11vw, 4.8rem); }
+  .viewfinder-contact .contact-layout h2 { font-size: clamp(3.2rem, 11vw, 5rem); }
+}

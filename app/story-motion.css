@@ -1,0 +1,189 @@
+/* Each timeline follows a stationary layout box. Only its contents move. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) and (animation-range: entry) {
+    .portfolio {
+      --story-ease: cubic-bezier(.22, .69, .3, 1);
+    }
+
+    .site-header::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--coral));
+      pointer-events: none;
+      transform-origin: left;
+      animation: story-progress auto linear both;
+      animation-timeline: scroll(root block);
+    }
+
+    .work-heading {
+      view-timeline-name: --work-heading;
+    }
+
+    .work-heading > h2, .work-heading > .work-filters {
+      animation: story-rise auto var(--story-ease) both;
+      animation-timeline: --work-heading;
+      animation-range: entry 0% cover 38%;
+    }
+
+    .work-heading > .work-filters {
+      --story-rise: 1rem;
+      animation-range: entry 14% cover 43%;
+    }
+
+    .work-project {
+      view-timeline-name: --project-frame;
+    }
+
+    .work-project .project-image {
+      animation: story-frame auto var(--story-ease) both;
+      animation-timeline: --project-frame;
+      animation-range: entry 0% cover 47%;
+    }
+
+    .work-project .project-image img {
+      animation: story-picture auto linear both;
+      animation-timeline: --project-frame;
+      animation-range: entry 0% cover 66%;
+    }
+
+    .project-image::before, .project-image::after {
+      content: "";
+      position: absolute;
+      z-index: 1;
+      inset-inline: 0;
+      height: 24%;
+      background: #22201d;
+      pointer-events: none;
+      transform: translateY(var(--matte-direction));
+      animation: story-matte auto var(--story-ease) both;
+      animation-timeline: --project-frame;
+      animation-range: entry 2% cover 46%;
+    }
+
+    .project-image::before { top: 0; --matte-direction: -101%; }
+    .project-image::after { bottom: 0; --matte-direction: 101%; }
+    .project-play { z-index: 2; }
+
+    .work-project .project-info {
+      --story-rise: 1.1rem;
+      animation: story-rise auto var(--story-ease) both;
+      animation-timeline: --project-frame;
+      animation-range: entry 25% cover 52%;
+    }
+
+    .studio-section {
+      overflow: clip;
+    }
+
+    .studio-intro { view-timeline-name: --studio-intro; }
+    .studio-services { view-timeline-name: --studio-services; }
+
+    .studio-intro > :is(.eyebrow, h2, p) {
+      animation: story-rise auto var(--story-ease) both;
+      animation-timeline: --studio-intro;
+      animation-range: entry 0% cover 44%;
+    }
+
+    .studio-intro > h2 { --story-rise: 2.65rem; }
+
+    .studio-intro > p:last-of-type {
+      --story-rise: 1.4rem;
+      animation-range: entry 12% cover 49%;
+    }
+
+    .studio-services > .service-row {
+      animation: story-service auto var(--story-ease) both;
+      animation-timeline: --studio-services;
+      animation-range: entry var(--service-start, 0%) cover var(--service-end, 34%);
+    }
+
+    .studio-services > :nth-child(2) { --service-start: 9%; --service-end: 39%; }
+    .studio-services > :nth-child(3) { --service-start: 18%; --service-end: 44%; }
+    .studio-services > :nth-child(4) { --service-start: 27%; --service-end: 49%; }
+
+    .contact-section {
+      position: relative;
+      isolation: isolate;
+      overflow: clip;
+      view-timeline-name: --contact-scene;
+    }
+
+    .contact-section::before {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      inset: -25% -5%;
+      background: radial-gradient(ellipse at 76% 85%, #ec9e7452, transparent 63%);
+      pointer-events: none;
+      animation: story-contact-light auto var(--story-ease) both;
+      animation-timeline: --contact-scene;
+      animation-range: entry 0% entry 95%;
+    }
+
+    .contact-layout > :is(h2, .contact-action) {
+      --story-rise: 3.5rem;
+      animation: story-rise auto var(--story-ease) both;
+      animation-timeline: --contact-scene;
+      animation-range: entry 0% entry 83%;
+    }
+
+    .contact-layout > .contact-action {
+      --story-rise: 1.8rem;
+      animation-range: entry 14% entry 97%;
+    }
+
+    .footer-end > * {
+      --story-rise: .8rem;
+      animation: story-rise auto var(--story-ease) both;
+      animation-timeline: --contact-scene;
+      animation-range: entry 28% entry 99%;
+    }
+
+    .work-heading:has(:focus-visible) > .work-filters,
+    .work-project:has(:focus-visible) :is(.project-image, .project-image img, .project-info),
+    .work-project:has(:focus-visible) .project-image::before,
+    .work-project:has(:focus-visible) .project-image::after,
+    .studio-services:has(:focus-visible) > .service-row,
+    .contact-action:has(:focus-visible),
+    .footer-end:has(:focus-visible) > * {
+      animation: none;
+    }
+
+    @media (max-width: 700px) {
+      .work-project .project-image { animation-range: entry 0% cover 39%; }
+      .project-image::before, .project-image::after { animation-range: entry 0% cover 37%; }
+      .studio-intro > h2, .contact-layout > h2 { --story-rise: 1.7rem; }
+    }
+  }
+}
+
+@keyframes story-progress {
+  from { scale: 0 1; }
+  to { scale: 1 1; }
+}
+@keyframes story-rise {
+  from { opacity: .52; transform: translate3d(0, var(--story-rise, 1.75rem), 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes story-frame {
+  from { transform: translate3d(0, 1.6rem, 0) scale(.956); }
+  to { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes story-picture {
+  from { translate: 0 3%; scale: 1.13; }
+  to { translate: 0 -1%; scale: 1.04; }
+}
+@keyframes story-matte {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, var(--matte-direction), 0); }
+}
+@keyframes story-service {
+  from { opacity: .57; transform: translate3d(.8rem, 1.1rem, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes story-contact-light {
+  from { opacity: .18; transform: translate3d(0, 12%, 0); }
+  to { opacity: .9; transform: translate3d(0, -6%, 0); }
+}

@@ -1,0 +1,80 @@
+.camera-mode-dial.site-nav {
+  gap: .15rem;
+  padding: .18rem;
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  border-radius: .5rem;
+  background: color-mix(in srgb, currentColor 3%, transparent);
+}
+
+.camera-mode-dial.site-nav a {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: .28rem;
+  min-block-size: 2.8rem;
+  min-inline-size: 3.6rem;
+  padding: .32rem clamp(.3rem, .9vw, .85rem);
+  border-radius: .3rem;
+  color: inherit;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  line-height: 1;
+  white-space: nowrap;
+  transition: color .22s, background .26s;
+}
+
+.camera-mode-dial.site-nav a::after {
+  content: "";
+  position: absolute;
+  inset: auto 35% -.19rem;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 20px;
+  opacity: 0;
+  transform: scaleX(.35);
+  transition: opacity .22s, transform .26s var(--ease);
+}
+
+.camera-mode-dial.site-nav a[aria-current="location"],
+.camera-mode-dial.site-nav a:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.camera-mode-dial.site-nav a[aria-current="location"]::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.camera-mode-dial.site-nav a:focus-visible {
+  outline-offset: 1px;
+}
+
+@media (max-width: 760px) {
+  .camera-mode-dial.site-nav.nav-open {
+    justify-content: space-around;
+    gap: .18rem;
+    padding: .55rem var(--gutter) .65rem;
+    border-radius: 0;
+    border-inline: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+  }
+
+  .camera-mode-dial.site-nav a {
+    flex: 1;
+    min-inline-size: 0;
+    min-block-size: 2.75rem;
+    padding-inline: .18rem;
+    font-size: .68rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera-mode-dial.site-nav a, .camera-mode-dial.site-nav a::after {
+    transition: none;
+  }
+}
