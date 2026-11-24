@@ -7,7 +7,7 @@ import { useLocale } from "@/components/locale";
 import { formatBookingTime, formatEuros } from "@/lib/booking-details";
 import { formatDate } from "@/lib/dates";
 import { bookingDetails, common, errorLabel, serviceLabel, statusLabel } from "@/lib/i18n";
-import { services, statuses, type Booking, type BookingList, type BookingStatus, type Service } from "@/lib/model";
+import { bookingTypes, statuses, type Booking, type BookingList, type BookingStatus, type BookingType } from "@/lib/model";
 import { EmptyState, ErrorState, LoadingState, Pagination, StatusBadge, useResource } from "./ui";
 
 export type BookingDates = { mode: "any" | "day" | "range"; from: string; to: string };
@@ -25,7 +25,7 @@ export function BookingTable({ bookings, onOpen, compact = false }: {
     <table className={`admin-table ${compact ? "admin-table-compact" : ""}`}>
       <thead><tr>
         <th scope="col">{sq ? "Klienti" : "Client"}</th>
-        <th scope="col">{t.service}</th>
+        <th scope="col">{bookingDetails[locale].type}</th>
         <th scope="col">{t.date}</th>
         <th scope="col">{bookingDetails[locale].price}</th>
         <th scope="col">{sq ? "Gjendja" : "Status"}</th>
@@ -57,7 +57,7 @@ export function Bookings({ dates: initialDates, version, onOpen }: {
   const t = common[locale];
   const [search, setSearch] = useState("");
   const [query, setQuery] = useState("");
-  const [service, setService] = useState<Service | "all">("all");
+  const [service, setService] = useState<BookingType | "all">("all");
   const [status, setStatus] = useState<BookingStatus | "all">("all");
   const [dates, setDates] = useState<BookingDates>(initialDates);
   const [page, setPage] = useState(1);
@@ -93,8 +93,8 @@ export function Bookings({ dates: initialDates, version, onOpen }: {
           aria-label={sq ? "Kërko sipas emrit, emailit ose telefonit" : "Search by name, email, or phone"}
           placeholder={sq ? "Kërko emër, email ose telefon" : "Search name, email, or phone"}/>
       </label>
-      <SelectMenu label={t.service} value={service} onChange={(value) => { setService(value); setPage(1); }}
-        options={[{ value: "all", label: sq ? "Të gjitha shërbimet" : "All services" }, ...services.map((value) => ({
+      <SelectMenu label={bookingDetails[locale].type} value={service} onChange={(value) => { setService(value); setPage(1); }}
+        options={[{ value: "all", label: sq ? "Të gjitha llojet" : "All booking types" }, ...bookingTypes.map((value) => ({
           value, label: serviceLabel(value, locale),
         }))]}/>
       <SelectMenu label={sq ? "Gjendja" : "Status"} value={status} onChange={(value) => { setStatus(value); setPage(1); }}

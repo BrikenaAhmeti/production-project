@@ -37,18 +37,19 @@ function confirmationText(booking: ConfirmationBooking) {
   const service = serviceLabel(booking.service, booking.language);
   const date = formatDate(booking.eventDate, booking.language, { dateStyle: "long" });
   const labels = bookingDetails[booking.language];
+  const type = `\n${labels.type}: ${service}`;
   const time = formatBookingTime(booking, booking.language);
   const schedule = time ? `\n${labels.time}: ${time}` : "";
   const price = booking.priceCents == null ? "" : `\n${labels.price}: ${formatEuros(booking.priceCents, booking.language)}`;
   if (booking.language === "sq") {
     return {
       subject: `${brand} · Rezervimi u konfirmua`,
-      text: `Përshëndetje ${booking.name},\n\nRezervimi yt për ${service.toLowerCase()} më ${date} është konfirmuar.${schedule}${price}\n\nNëse dëshiron të ndash detaje të tjera, përgjigju këtij emaili.\n\n${brand}`,
+      text: `Përshëndetje ${booking.name},\n\nRezervimi yt për datën ${date} është konfirmuar.${type}${schedule}${price}\n\nNëse dëshiron të ndash detaje të tjera, përgjigju këtij emaili.\n\n${brand}`,
     };
   }
   return {
     subject: `${brand} · Booking confirmed`,
-    text: `Hi ${booking.name},\n\nYour ${service.toLowerCase()} booking for ${date} is confirmed.${schedule}${price}\n\nIf you'd like to share any other details, reply to this email.\n\n${brand}`,
+    text: `Hi ${booking.name},\n\nYour booking for ${date} is confirmed.${type}${schedule}${price}\n\nIf you'd like to share any other details, reply to this email.\n\n${brand}`,
   };
 }
 

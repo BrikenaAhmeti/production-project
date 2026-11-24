@@ -10,7 +10,7 @@ import { formatBookingTime, formatEuros } from "@/lib/booking-details";
 import { asJson, errorCode, requestJson } from "@/lib/client";
 import { formatDate, formatTimestamp } from "@/lib/dates";
 import { bookingDetails, common, errorLabel, serviceLabel } from "@/lib/i18n";
-import { services, type Booking, type Service } from "@/lib/model";
+import { bookingTypes, type Booking, type BookingType } from "@/lib/model";
 import { ErrorState, LoadingState, StatusBadge, useResource } from "./ui";
 
 function ScheduleAndPrice({ booking, priceRequired = false }: { booking?: Booking; priceRequired?: boolean }) {
@@ -36,7 +36,8 @@ function BookingFields({ booking, onSaved, onCancel }: {
   const { locale } = useLocale();
   const sq = locale === "sq";
   const t = common[locale];
-  const [service, setService] = useState<Service | "">(booking?.service ?? "");
+  const bookingType = bookingDetails[locale].type;
+  const [service, setService] = useState<BookingType | "">(booking?.service ?? "");
   const [eventDate, setDate] = useState(booking?.eventDate ?? "");
   const [error, setError] = useState<string>();
   const [saving, setSaving] = useState(false);
@@ -64,9 +65,9 @@ function BookingFields({ booking, onSaved, onCancel }: {
     <label className="field"><span>{t.email} <small>({t.optional})</small></span><input name="email" type="email" maxLength={254} defaultValue={booking?.email ?? ""}/></label>
     <label className="field"><span>{t.phone} {!phoneRequired && <small>({t.optional})</small>}</span>
       <input name="phone" type="tel" maxLength={40} required={phoneRequired} defaultValue={booking?.phone ?? ""}/></label>
-    <div className="field"><label htmlFor="admin-booking-service">{t.service}</label>
-      <SelectMenu id="admin-booking-service" label={t.service} value={service} onChange={setService}
-        options={services.map((value) => ({ value, label: serviceLabel(value, locale) }))}/>
+    <div className="field"><label htmlFor="admin-booking-service">{bookingType}</label>
+      <SelectMenu id="admin-booking-service" label={bookingType} value={service} onChange={setService}
+        options={bookingTypes.map((value) => ({ value, label: serviceLabel(value, locale) }))}/>
     </div>
     <div className="field"><label htmlFor="admin-booking-date">{t.date}</label>
       <DatePicker id="admin-booking-date" label={t.date} value={eventDate} onChange={setDate}/>
@@ -144,7 +145,7 @@ function BookingDetails({ initial, onChanged }: { initial: Booking; onChanged: (
     <div className="detail-top"><div><h3>{booking.name}</h3><span>{website ? (sq ? "Nga faqja" : "From the website") : (sq ? "Shtuar manualisht" : "Added manually")}</span></div>
       <StatusBadge status={booking.status}/></div>
     <dl className="details-grid">
-      <div><dt>{t.service}</dt><dd>{serviceLabel(booking.service, locale)}</dd></div>
+      <div><dt>{labels.type}</dt><dd>{serviceLabel(booking.service, locale)}</dd></div>
       <div><dt>{t.date}</dt><dd>{formatDate(booking.eventDate, locale, { dateStyle: "long" })}</dd></div>
       <div><dt>{labels.time}</dt><dd>{formatBookingTime(booking, locale) ?? "—"}</dd></div>
       <div><dt>{labels.price}</dt><dd>{booking.priceCents == null ? "—" : formatEuros(booking.priceCents, locale)}</dd></div>

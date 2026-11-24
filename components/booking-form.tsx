@@ -3,22 +3,23 @@
 import { CheckCircle2 } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { asJson, errorCode, requestJson } from "@/lib/client";
-import { common, errorLabel, serviceLabel } from "@/lib/i18n";
-import { services, type Service } from "@/lib/model";
+import { bookingDetails, common, errorLabel, serviceLabel } from "@/lib/i18n";
+import { bookingTypes, type BookingType } from "@/lib/model";
 import { BookingTimeFields } from "./booking-time-fields";
 import { DatePicker, SelectMenu } from "./controls";
 import { Dialog } from "./dialog";
 import { useLocale } from "./locale";
 
 export function BookingForm({ service: initial, earliestDate, onClose }: {
-  service?: Service;
+  service?: BookingType;
   earliestDate: string;
   onClose: () => void;
 }) {
   const { locale } = useLocale();
   const sq = locale === "sq";
   const t = common[locale];
-  const [service, setService] = useState<Service | "">(initial ?? "");
+  const bookingType = bookingDetails[locale].type;
+  const [service, setService] = useState<BookingType | "">(initial ?? "");
   const [date, setDate] = useState("");
   const [error, setError] = useState<string>();
   const [sending, setSending] = useState(false);
@@ -62,9 +63,9 @@ export function BookingForm({ service: initial, earliestDate, onClose }: {
             <label className="field field-wide">{t.name}<input name="name" type="text" autoComplete="name" required minLength={2} maxLength={120} /></label>
             <label className="field">{t.phone}<input name="phone" type="tel" autoComplete="tel" required maxLength={40} /></label>
             <label className="field"><span>{t.email} <small>({t.optional})</small></span><input name="email" type="email" autoComplete="email" maxLength={254} /></label>
-            <div className="field"><label htmlFor="public-service">{t.service}</label>
-              <SelectMenu id="public-service" label={t.service} value={service} onChange={setService}
-                options={services.map((id) => ({ value: id, label: serviceLabel(id, locale) }))}/>
+            <div className="field"><label htmlFor="public-service">{bookingType}</label>
+              <SelectMenu id="public-service" label={bookingType} value={service} onChange={setService}
+                options={bookingTypes.map((id) => ({ value: id, label: serviceLabel(id, locale) }))}/>
             </div>
             <div className="field"><label htmlFor="public-date">{t.date}</label>
               <DatePicker id="public-date" label={t.date} value={date} onChange={setDate} min={earliestDate} />

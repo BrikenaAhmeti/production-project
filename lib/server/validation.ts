@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { periods, services, statuses } from "@/lib/model";
+import { bookingTypes, periods, services, statuses } from "@/lib/model";
 
 const optionalText = (length: number) => z.string().trim().max(length).default("");
 const email = z.string().trim().max(254).refine((value) => !value || z.email().safeParse(value).success).default("");
@@ -24,7 +24,7 @@ export const bookingInput = z.object({
   name: z.string().trim().min(2).max(120),
   email,
   phone,
-  service: z.enum(services),
+  service: z.enum(bookingTypes),
   eventDate: z.iso.date(),
   message: optionalText(2500),
   language: z.enum(["sq", "en"]).default("sq"),
@@ -55,7 +55,7 @@ export const websiteBookingInput = bookingInput.extend({
 
 export const bookingFilters = z.object({
   q: optionalText(120),
-  service: z.enum(services).optional(),
+  service: z.enum(bookingTypes).optional(),
   status: z.enum(statuses).optional(),
   on: z.iso.date().optional(),
   from: z.iso.date().optional(),

@@ -1,9 +1,14 @@
 export const services = ["wedding", "film", "portrait", "commercial"] as const;
+export const bookingTypes = [
+  "wedding", "engagement", "anniversary", "couple", "birthday", "family", "maternity", "newborn",
+  "graduation", "new_year", "christmas", "event", "portrait", "commercial", "film", "other",
+] as const;
 export const statuses = ["pending", "confirmed", "cancelled"] as const;
 export const periods = ["week", "month", "year"] as const;
 
 export type Locale = "sq" | "en";
 export type Service = (typeof services)[number];
+export type BookingType = (typeof bookingTypes)[number];
 export type BookingStatus = (typeof statuses)[number];
 export type Period = (typeof periods)[number];
 export type EmailStatus = "queued" | "sending" | "sent" | "failed";
@@ -13,7 +18,7 @@ export type Booking = {
   name: string;
   email: string | null;
   phone: string | null;
-  service: Service;
+  service: BookingType;
   eventDate: string;
   priceCents: number | null;
   startTime: string | null;
@@ -32,7 +37,7 @@ export type StudioNotification = {
   id: string;
   bookingId: string;
   name: string;
-  service: Service;
+  service: BookingType;
   createdAt: string;
   readAt: string | null;
 };
@@ -72,7 +77,7 @@ export type StudioStats = {
   website: number;
   bookedCents: number;
   series: { date: string; total: number; confirmed: number; bookedCents: number }[];
-  services: { service: Service; total: number }[];
+  services: { service: BookingType; total: number }[];
   recent: Booking[];
 };
 

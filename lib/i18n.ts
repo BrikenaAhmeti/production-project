@@ -1,12 +1,24 @@
-import type { BookingStatus, Locale, Service } from "./model";
+import type { BookingStatus, BookingType, Locale } from "./model";
 
 export const localeCookie = "go_language";
 
-const serviceNames = {
+const serviceNames: Record<BookingType, Record<Locale, string>> = {
   wedding: { sq: "Dasma", en: "Weddings" },
+  engagement: { sq: "Fejesa", en: "Engagements" },
+  anniversary: { sq: "Përvjetorë", en: "Anniversaries" },
+  couple: { sq: "Sesione për çifte", en: "Couples sessions" },
+  birthday: { sq: "Ditëlindje", en: "Birthdays" },
+  family: { sq: "Sesione familjare", en: "Family sessions" },
+  maternity: { sq: "Foto shtatzënie", en: "Maternity sessions" },
+  newborn: { sq: "Foto për të porsalindur", en: "Newborn sessions" },
+  graduation: { sq: "Diplomime", en: "Graduations" },
+  new_year: { sq: "Viti i Ri", en: "New Year" },
+  christmas: { sq: "Krishtlindje", en: "Christmas" },
+  event: { sq: "Fotografi eventesh", en: "Event photography" },
   film: { sq: "Film", en: "Film" },
   portrait: { sq: "Portrete", en: "Portraits" },
   commercial: { sq: "Brende", en: "Brands" },
+  other: { sq: "Tjetër", en: "Other" },
 };
 
 const statusNames = {
@@ -15,7 +27,7 @@ const statusNames = {
   cancelled: { sq: "Anuluar", en: "Cancelled" },
 };
 
-export const serviceLabel = (service: Service, locale: Locale) => serviceNames[service][locale];
+export const serviceLabel = (service: BookingType, locale: Locale) => serviceNames[service][locale];
 export const statusLabel = (status: BookingStatus, locale: Locale) => statusNames[status][locale];
 
 export const common = {
@@ -34,15 +46,15 @@ export const common = {
 };
 
 export const bookingDetails = {
-  sq: { price: "Çmimi", start: "Ora e fillimit", end: "Ora e mbarimit", time: "Orari", value: "Vlera e rezervuar" },
-  en: { price: "Price", start: "Start time", end: "Finish time", time: "Schedule", value: "Booked value" },
+  sq: { type: "Lloji i rezervimit", price: "Çmimi", start: "Ora e fillimit", end: "Ora e mbarimit", time: "Orari", value: "Vlera e rezervuar" },
+  en: { type: "Booking type", price: "Price", start: "Start time", end: "Finish time", time: "Schedule", value: "Booked value" },
 };
 
 const errors: Record<string, Record<Locale, string>> = {
   invalid: { sq: "Kontrollo të dhënat dhe provo përsëri.", en: "Check your details and try again." },
   phone: { sq: "Shkruaj një numër telefoni të vlefshëm.", en: "Enter a valid phone number." },
   email: { sq: "Shkruaj një adresë emaili të vlefshme.", en: "Enter a valid email address." },
-  service: { sq: "Zgjidh një shërbim.", en: "Choose a service." },
+  service: { sq: "Zgjidh llojin e rezervimit.", en: "Choose a booking type." },
   eventDate: { sq: "Zgjidh një datë.", en: "Choose a date." },
   price: { sq: "Shkruaj një çmim në euro me deri në dy shifra pas presjes.", en: "Enter a euro price with up to two decimal places." },
   startTime: { sq: "Shkruaj një orë të vlefshme fillimi.", en: "Enter a valid start time." },

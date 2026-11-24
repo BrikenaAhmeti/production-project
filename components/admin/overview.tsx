@@ -6,7 +6,7 @@ import { useLocale } from "@/components/locale";
 import { formatEuros } from "@/lib/booking-details";
 import { dateInUtc, formatDate, isoDate } from "@/lib/dates";
 import { bookingDetails, serviceLabel } from "@/lib/i18n";
-import { periods, services, type Period, type StudioStats } from "@/lib/model";
+import { periods, type Period, type StudioStats } from "@/lib/model";
 import { BookingTable, type BookingDates } from "./booking-table";
 import { EmptyState, ErrorState, LoadingState, useResource } from "./ui";
 
@@ -114,17 +114,15 @@ export function Overview({ version, onOpen, onBookings }: OverviewProps) {
       <div className="overview-grid">
         <StatsChart stats={data} period={period} metric={metric} onMetric={setMetric} onBookings={onBookings}/>
         <section className="admin-panel breakdown">
-          <div className="panel-title"><div><h2>{sq ? "Sipas shërbimit" : "By service"}</h2>
-            <p>{sq ? "Rezervimet në këtë periudhë" : "Bookings in this period"}</p></div></div>
-          <div className="breakdown-list">
-            {services.map((service, index) => {
-              const total = data.services.find((entry) => entry.service === service)?.total || 0;
-              return <div className={`breakdown-item breakdown-${index}`} key={service}>
+          <div className="panel-title"><h2>{sq ? "Sipas llojit të rezervimit" : "By booking type"}</h2></div>
+          {data.services.length ? <div className="breakdown-list">
+            {data.services.map(({ service, total }, index) => (
+              <div className={`breakdown-item breakdown-${index % 4}`} key={service}>
                 <div><strong>{serviceLabel(service, locale)}</strong><span>{total}</span></div>
-                <div aria-hidden="true"><span style={{ width: `${data.total ? total / data.total * 100 : 0}%` }}/></div>
-              </div>;
-            })}
-          </div>
+                <div aria-hidden="true"><span style={{ width: `${total / data.total * 100}%` }}/></div>
+              </div>
+            ))}
+          </div> : <EmptyState title={sq ? "Nuk ka rezervime për këtë periudhë" : "No bookings in this period"}/>}
         </section>
       </div>
       <section className="admin-panel">
