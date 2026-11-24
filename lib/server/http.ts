@@ -52,7 +52,7 @@ export function clientAddress(request: Request) {
 export function respondToError(error: unknown) {
   if (error instanceof HttpError) return json({ error: error.code }, error.status);
   if (error instanceof z.ZodError) {
-    return json({ error: "invalid", field: error.issues[0]?.path[0] }, 422);
+    return json({ error: "invalid", field: error.issues[0]?.path.at(-1) }, 422);
   }
   console.error("Studio request failed.", error instanceof Error ? error.name : "Unknown error");
   return json({ error: "unavailable" }, 503);

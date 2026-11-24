@@ -1,7 +1,7 @@
 import { insertBooking, listBookings, getBooking } from "@/lib/server/bookings";
 import { bodyJson, json } from "@/lib/server/http";
 import { adminRoute } from "@/lib/server/routes";
-import { bookingFilters, bookingInput } from "@/lib/server/validation";
+import { adminBookingInput, bookingFilters } from "@/lib/server/validation";
 
 export function GET(request: Request) {
   return adminRoute(request, async () => {
@@ -12,7 +12,7 @@ export function GET(request: Request) {
 
 export function POST(request: Request) {
   return adminRoute(request, async () => {
-    const input = bookingInput.parse(await bodyJson(request));
+    const input = adminBookingInput.parse(await bodyJson(request));
     return json(await getBooking(await insertBooking(input)), 201);
   });
 }

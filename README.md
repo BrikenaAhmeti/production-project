@@ -39,9 +39,10 @@ Gallery images over 4 MiB are resized in the browser before upload to fit the de
 
 ## Booking and content workflow
 
-- Website requests require a phone number and can omit email. They arrive as **Pending** and create an unread notification. Confirming a request attempts SMTP delivery in the visitor’s language when an email was entered. Failed delivery is visible in booking details and can be retried there.
-- Admin bookings are immediately **Confirmed**. Both phone and email are optional.
-- Bookings support service, status, exact date, date range, name, email, and phone filters. The dashboard starts with the current calendar month and can show the current week or year. Charts count scheduled event dates using `STUDIO_TIMEZONE`.
+- Website requests require a phone number and can include email and a requested start and finish time. They arrive as **Pending** and create an unread notification. Admins can accept or change the requested times and set a euro price when confirming. An earlier finish time is treated as the next day.
+- Confirmation emails use the visitor’s selected language and include the final schedule when available. The admin can opt in to showing the price. Failed deliveries can be retried from booking details.
+- Admin bookings are immediately **Confirmed**. Phone, email, schedule, and euro price are optional.
+- Bookings support service, status, exact date, date range, name, email, and phone filters. The dashboard starts with the current calendar month and can show the current week or year. Charts use scheduled event dates in `STUDIO_TIMEZONE`. Booked value sums the prices of confirmed bookings in the selected period.
 - Update the public location, email, phone, Instagram, and map under **Contact details**. Under **Gallery**, edit projects and order, replace or delete images, and update the homepage background and showreel.
 
 ## Supabase inactivity

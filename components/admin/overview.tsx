@@ -1,10 +1,11 @@
 "use client";
 
-import { CalendarDays, CheckCircle2, Clock3, Globe2 } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock3, Euro, Globe2 } from "lucide-react";
 import { useState } from "react";
 import { useLocale } from "@/components/locale";
+import { formatEuros } from "@/lib/booking-details";
 import { dateInUtc, formatDate, isoDate } from "@/lib/dates";
-import { serviceLabel } from "@/lib/i18n";
+import { bookingDetails, serviceLabel } from "@/lib/i18n";
 import { periods, services, type Period, type StudioStats } from "@/lib/model";
 import { BookingTable, type BookingDates } from "./booking-table";
 import { EmptyState, ErrorState, LoadingState, useResource } from "./ui";
@@ -15,13 +16,18 @@ type OverviewProps = {
   onBookings: (dates?: BookingDates) => void;
 };
 
-function StatsChart({ stats, period, onBookings }: {
+type ChartMetric = "count" | "value";
+
+function StatsChart({ stats, period, metric, onMetric, onBookings }: {
   stats: StudioStats; period: Period; onBookings: OverviewProps["onBookings"];
+  metric: ChartMetric; onMetric: (metric: ChartMetric) => void;
 }) {
   const { locale } = useLocale();
   const sq = locale === "sq";
-  const maximum = Math.max(1, ...stats.series.map((item) => item.total));
-  const step = Math.max(1, Math.ceil(maximum / 4));
+  const valueMode = metric === "value";
+  const maximum = Math.max(0, ...stats.series.map((item) => valueMode ? item.bookedCents : item.total));
+  const tickUnit = valueMode && (maximum >= 100 || maximum === 0) ? 100 : 1;
+  const step = tickUnit * Math.max(1, Math.ceil(maximum / (4 * tickUnit)));
   const scale = step * 4;
 
   function openDate(value: string) {
@@ -32,25 +38,36 @@ function StatsChart({ stats, period, onBookings }: {
   }
 
   return <section className="admin-panel chart-panel">
-    <div className="panel-title"><div><h2>{sq ? "Ecuria e rezervimeve" : "Booking activity"}</h2>
+    <div className="panel-title chart-heading"><div><h2>{sq ? "Ecuria e rezervimeve" : "Booking activity"}</h2>
       <p>{sq ? "Sipas datës së rezervuar" : "By scheduled date"}</p></div>
-      <div className="chart-legend"><span><i/>{sq ? "Gjithsej" : "Total"}</span>
-      <span><i/>{sq ? "Konfirmuar" : "Confirmed"}</span></div>
+      <div className="segments" role="group" aria-label={sq ? "Të dhënat e grafikut" : "Chart metric"}>
+        <button type="button" aria-pressed={!valueMode} onClick={() => onMetric("count")}>{sq ? "Rezervimet" : "Bookings"}</button>
+        <button type="button" aria-pressed={valueMode} onClick={() => onMetric("value")}>{bookingDetails[locale].value}</button>
+      </div>
     </div>
+    {!valueMode && <div className="chart-legend"><span><i/>{sq ? "Gjithsej" : "Total"}</span>
+      <span><i/>{sq ? "Konfirmuar" : "Confirmed"}</span></div>
+    }
     <div className="chart-body">
-      <div className="chart-y" aria-hidden="true">{[4, 3, 2, 1, 0].map((level) => <span key={level}>{level * step}</span>)}</div>
+      <div className="chart-y" aria-hidden="true">{[4, 3, 2, 1, 0].map((level) => <span key={level}>
+        {valueMode ? formatEuros(level * step, locale, true) : level * step}
+      </span>)}</div>
       <div className="chart-content">
         <div className="chart-columns" style={{ gridTemplateColumns: `repeat(${stats.series.length}, minmax(0, 1fr))` }}>
           {stats.series.map((item) => {
             const day = period === "year" ? formatDate(item.date, locale, { month: "long" }) : formatDate(item.date, locale);
+            const chartValue = valueMode ? item.bookedCents : item.total;
+            const label = valueMode ? formatEuros(chartValue, locale) : `${chartValue} ${sq ? "rezervime" : "bookings"}`;
             return <button type="button" key={item.date} className="chart-col" onClick={() => openDate(item.date)}
-              aria-label={`${day}: ${item.total} ${sq ? "rezervime" : "bookings"}`} title={`${day} · ${item.total}`}>
-              <span className="chart-bar" style={{ height: `${item.total / scale * 100}%` }}>
-                <span style={{ height: `${item.total ? item.confirmed / item.total * 100 : 0}%` }}/>
+              aria-label={`${day}, ${label}`} title={`${day} · ${label}`}>
+              <span className="chart-bar" style={{ height: `${chartValue / scale * 100}%` }}>
+                <span style={{ height: `${valueMode ? 100 : item.total ? item.confirmed / item.total * 100 : 0}%` }}/>
               </span>
             </button>;
           })}
-          {stats.total === 0 && <span className="chart-zero">{sq ? "Nuk ka rezervime për këtë periudhë" : "No bookings in this period"}</span>}
+          {maximum === 0 && <span className="chart-zero">{valueMode
+            ? (sq ? "Nuk ka vlerë të rezervuar për këtë periudhë" : "No booked value in this period")
+            : (sq ? "Nuk ka rezervime për këtë periudhë" : "No bookings in this period")}</span>}
         </div>
         <div className="chart-x" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${stats.series.length}, minmax(0, 1fr))` }}>
           {stats.series.map((item, index) => <span key={item.date}>{period === "month"
@@ -66,6 +83,7 @@ export function Overview({ version, onOpen, onBookings }: OverviewProps) {
   const { locale } = useLocale();
   const sq = locale === "sq";
   const [period, setPeriod] = useState<Period>("month");
+  const [metric, setMetric] = useState<ChartMetric>("count");
   const { data, error, reload } = useResource<StudioStats>(`/api/admin/stats?period=${period}`, version);
   const periodLabels = { week: sq ? "Java" : "Week", month: sq ? "Muaji" : "Month", year: sq ? "Viti" : "Year" };
   const tiles = [
@@ -88,9 +106,13 @@ export function Overview({ version, onOpen, onBookings }: OverviewProps) {
           <span className={`metric-icon tone-${tone}`}><Icon size={19}/></span>
           <span className="metric-label">{label}</span><strong>{data[id]}</strong>
         </div>)}
+        <div className="admin-panel metric metric-booked-value">
+          <span className="metric-icon tone-green"><Euro size={19}/></span>
+          <span className="metric-label">{bookingDetails[locale].value}</span><strong>{formatEuros(data.bookedCents, locale)}</strong>
+        </div>
       </div>
       <div className="overview-grid">
-        <StatsChart stats={data} period={period} onBookings={onBookings}/>
+        <StatsChart stats={data} period={period} metric={metric} onMetric={setMetric} onBookings={onBookings}/>
         <section className="admin-panel breakdown">
           <div className="panel-title"><div><h2>{sq ? "Sipas shërbimit" : "By service"}</h2>
             <p>{sq ? "Rezervimet në këtë periudhë" : "Bookings in this period"}</p></div></div>

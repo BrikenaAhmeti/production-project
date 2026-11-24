@@ -1,9 +1,10 @@
 import "server-only";
 import nodemailer from "nodemailer";
+import { formatBookingTime, formatEuros } from "@/lib/booking-details";
 import { brand } from "@/lib/content";
 import { formatDate } from "@/lib/dates";
 import type { Booking } from "@/lib/model";
-import { serviceLabel } from "@/lib/i18n";
+import { bookingDetails, serviceLabel } from "@/lib/i18n";
 import { getBooking } from "./bookings";
 import { query, transaction } from "./db";
 
@@ -30,28 +31,35 @@ function mailConfig() {
   };
 }
 
-function confirmationText(booking: Booking) {
+type ConfirmationBooking = Pick<Booking, "id" | "name" | "email" | "service" | "eventDate" | "language" | "startTime" | "endTime" | "priceCents">;
+
+function confirmationText(booking: ConfirmationBooking) {
   const service = serviceLabel(booking.service, booking.language);
   const date = formatDate(booking.eventDate, booking.language, { dateStyle: "long" });
+  const labels = bookingDetails[booking.language];
+  const time = formatBookingTime(booking, booking.language);
+  const schedule = time ? `\n${labels.time}: ${time}` : "";
+  const price = booking.priceCents == null ? "" : `\n${labels.price}: ${formatEuros(booking.priceCents, booking.language)}`;
   if (booking.language === "sq") {
     return {
       subject: `${brand} · Rezervimi u konfirmua`,
-      text: `Përshëndetje ${booking.name},\n\nRezervimi yt për ${service.toLowerCase()} më ${date} është konfirmuar.\n\nNëse dëshiron të ndash detaje të tjera, përgjigju këtij emaili.\n\n${brand}`,
+      text: `Përshëndetje ${booking.name},\n\nRezervimi yt për ${service.toLowerCase()} më ${date} është konfirmuar.${schedule}${price}\n\nNëse dëshiron të ndash detaje të tjera, përgjigju këtij emaili.\n\n${brand}`,
     };
   }
   return {
     subject: `${brand} · Booking confirmed`,
-    text: `Hi ${booking.name},\n\nYour ${service.toLowerCase()} booking for ${date} is confirmed.\n\nIf you'd like to share any other details, reply to this email.\n\n${brand}`,
+    text: `Hi ${booking.name},\n\nYour ${service.toLowerCase()} booking for ${date} is confirmed.${schedule}${price}\n\nIf you'd like to share any other details, reply to this email.\n\n${brand}`,
   };
 }
 
 export async function sendConfirmation(id: string) {
   const claim = await transaction(async (client) => {
-    const locked = await client.query<Booking>(`
-      SELECT id, name, email, service, event_date::text AS "eventDate", language
-      FROM studio.bookings
-      WHERE id = $1 AND status = 'confirmed' AND source = 'website' AND email IS NOT NULL
-      FOR UPDATE
+    const locked = await client.query<ConfirmationBooking>(`
+      SELECT b.id, b.name, b.email, b.service, b.event_date::text AS "eventDate", b.language,
+        left(b.start_time::text, 5) AS "startTime", left(b.end_time::text, 5) AS "endTime", e.price_cents AS "priceCents"
+      FROM studio.bookings b LEFT JOIN studio.confirmation_emails e ON e.booking_id = b.id
+      WHERE b.id = $1 AND b.status = 'confirmed' AND b.source = 'website' AND b.email IS NOT NULL
+      FOR UPDATE OF b
     `, [id]);
     const booking = locked.rows[0];
     if (!booking) return null;

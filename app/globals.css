@@ -66,6 +66,7 @@ h1, h2, h3, p { margin: 0; }
 .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .95rem; margin-top: 1rem; }
 .field { display: grid; gap: .34rem; align-content: start; min-width: 0; font-size: .88rem; font-weight: 580; }
 .field small { font-size: .77rem; font-weight: 430; color: var(--muted); }
+.booking-time-hint { margin-top: -.25rem; color: var(--muted); font-size: .79rem; line-height: 1.45; }
 .field-wide { grid-column: 1 / -1; }
 .field input:not([type="file"]), .field textarea, .control-button, .search-field {
   width: 100%; min-width: 0; min-height: 2.75rem; padding: .64rem .74rem; border: 1px solid var(--line);

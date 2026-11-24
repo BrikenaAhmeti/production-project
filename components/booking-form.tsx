@@ -5,6 +5,7 @@ import { useRef, useState, type FormEvent } from "react";
 import { asJson, errorCode, requestJson } from "@/lib/client";
 import { common, errorLabel, serviceLabel } from "@/lib/i18n";
 import { services, type Service } from "@/lib/model";
+import { BookingTimeFields } from "./booking-time-fields";
 import { DatePicker, SelectMenu } from "./controls";
 import { Dialog } from "./dialog";
 import { useLocale } from "./locale";
@@ -30,13 +31,13 @@ export function BookingForm({ service: initial, earliestDate, onClose }: {
       setError(!service ? "service" : "eventDate");
       return;
     }
-    const values = Object.fromEntries(new FormData(event.currentTarget));
+    const { startTime, endTime, ...values } = Object.fromEntries(new FormData(event.currentTarget));
     setSending(true);
     setError(undefined);
     try {
       requestId.current ??= crypto.randomUUID();
       await requestJson("/api/bookings", asJson("POST", {
-        ...values, service, eventDate: date, language: locale, requestId: requestId.current,
+        ...values, service, eventDate: date, language: locale, requestId: requestId.current, schedule: { startTime, endTime },
       }));
       setDone(true);
     } catch (failure) {
@@ -68,8 +69,9 @@ export function BookingForm({ service: initial, earliestDate, onClose }: {
             <div className="field"><label htmlFor="public-date">{t.date}</label>
               <DatePicker id="public-date" label={t.date} value={date} onChange={setDate} min={earliestDate} />
             </div>
+            <BookingTimeFields/>
             <label className="field field-wide"><span>{t.message} <small>({t.optional})</small></span>
-              <textarea name="message" rows={3} maxLength={2500} placeholder={sq ? "Vendi, ora ose ndonjë detaj tjetër" : "Location, time, or anything else you’d like to share"} />
+              <textarea name="message" rows={3} maxLength={2500} placeholder={sq ? "Vendi ose ndonjë detaj tjetër" : "Location or anything else you’d like to share"} />
             </label>
             <div className="honeypot" aria-hidden="true"><label>Website<input name="website" autoComplete="off" tabIndex={-1}/></label></div>
             {error && <p className="form-error field-wide" role="alert">{errorLabel(error, locale)}</p>}

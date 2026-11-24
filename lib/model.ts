@@ -15,6 +15,9 @@ export type Booking = {
   phone: string | null;
   service: Service;
   eventDate: string;
+  priceCents: number | null;
+  startTime: string | null;
+  endTime: string | null;
   message: string;
   language: Locale;
   source: "website" | "admin";
@@ -67,7 +70,8 @@ export type StudioStats = {
   confirmed: number;
   pending: number;
   website: number;
-  series: { date: string; total: number; confirmed: number }[];
+  bookedCents: number;
+  series: { date: string; total: number; confirmed: number; bookedCents: number }[];
   services: { service: Service; total: number }[];
   recent: Booking[];
 };

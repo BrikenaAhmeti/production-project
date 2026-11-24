@@ -1,4 +1,5 @@
 .env*
 !.env.example
+go-production-vercel.env
 .local/
 *.tsbuildinfo

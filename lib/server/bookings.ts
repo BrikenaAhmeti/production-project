@@ -3,25 +3,32 @@ import { dateInUtc, isoDate, todayIn } from "@/lib/dates";
 import type { Booking, BookingList, Period, StudioStats } from "@/lib/model";
 import { query, transaction } from "./db";
 import { HttpError } from "./http";
-import type { BookingFilters, BookingInput } from "./validation";
+import type { AdminBookingInput, BookingDetailsInput, BookingFilters } from "./validation";
 
 const pageSize = 10;
 const bookingColumns = `
   b.id, b.name, b.email, b.phone, b.service, b.event_date::text AS "eventDate",
+  b.price_cents AS "priceCents", left(b.start_time::text, 5) AS "startTime", left(b.end_time::text, 5) AS "endTime",
   b.message, b.language, b.source, b.status, b.created_at AS "createdAt", e.status AS "emailStatus"
 `;
 const bookingsWithMail = `studio.bookings b LEFT JOIN studio.confirmation_emails e ON e.booking_id = b.id`;
 
-function bookingValues(input: BookingInput) {
+function bookingValues(input: AdminBookingInput) {
   return [input.name, input.email || null, input.phone || null, input.service, input.eventDate, input.message, input.language];
 }
 
-export async function insertBooking(input: BookingInput, requestId?: string) {
+function detailValues(details?: BookingDetailsInput) {
+  return [details?.priceCents ?? null, details?.startTime ?? null, details?.endTime ?? null];
+}
+
+export async function insertBooking(input: AdminBookingInput, requestId?: string) {
   const source = requestId ? "website" : "admin";
   const result = await query<{ id: string }>(`
     WITH created AS (
-      INSERT INTO studio.bookings (name, email, phone, service, event_date, message, language, request_id, source, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      INSERT INTO studio.bookings (
+        name, email, phone, service, event_date, message, language, request_id, source, status, price_cents, start_time, end_time
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       ON CONFLICT (request_id) DO NOTHING
       RETURNING id, source
     ), notified AS (
@@ -29,7 +36,7 @@ export async function insertBooking(input: BookingInput, requestId?: string) {
       SELECT id FROM created WHERE source = 'website'
     )
     SELECT id FROM created
-  `, [...bookingValues(input), requestId ?? null, source, requestId ? "pending" : "confirmed"]);
+  `, [...bookingValues(input), requestId ?? null, source, requestId ? "pending" : "confirmed", ...detailValues(input.details)]);
   if (result.rows[0]) return result.rows[0].id;
 
   const existing = await query<{ id: string }>("SELECT id FROM studio.bookings WHERE request_id = $1", [requestId]);
@@ -76,27 +83,35 @@ export async function getBooking(id: string) {
   return result.rows[0];
 }
 
-export async function editBooking(id: string, input: BookingInput) {
+export async function editBooking(id: string, input: AdminBookingInput) {
   const existing = await getBooking(id);
   if (existing.source === "website" && !input.phone) throw new HttpError(422, "phone");
   await query(`
     UPDATE studio.bookings SET name = $1, email = $2, phone = $3, service = $4,
-      event_date = $5, message = $6, language = $7 WHERE id = $8
-  `, [...bookingValues(input), id]);
+      event_date = $5, message = $6, language = $7,
+      price_cents = CASE WHEN $9::boolean THEN $10 ELSE price_cents END,
+      start_time = CASE WHEN $9::boolean THEN $11 ELSE start_time END,
+      end_time = CASE WHEN $9::boolean THEN $12 ELSE end_time END
+    WHERE id = $8
+  `, [...bookingValues(input), id, Boolean(input.details), ...detailValues(input.details)]);
   return getBooking(id);
 }
 
-export async function confirmBooking(id: string) {
+export async function confirmBooking(id: string, details?: BookingDetailsInput, includePrice = false) {
   await query(`
     WITH confirmed AS (
-      UPDATE studio.bookings SET status = 'confirmed'
+      UPDATE studio.bookings SET status = 'confirmed',
+        price_cents = CASE WHEN $2::boolean THEN $3 ELSE price_cents END,
+        start_time = CASE WHEN $2::boolean THEN $4 ELSE start_time END,
+        end_time = CASE WHEN $2::boolean THEN $5 ELSE end_time END
       WHERE id = $1 AND status = 'pending'
-      RETURNING id, email, source
+      RETURNING id, email, source, price_cents
     )
-    INSERT INTO studio.confirmation_emails (booking_id)
-    SELECT id FROM confirmed WHERE email IS NOT NULL AND source = 'website'
+    INSERT INTO studio.confirmation_emails (booking_id, price_cents)
+    SELECT id, CASE WHEN $6::boolean THEN price_cents END
+    FROM confirmed WHERE email IS NOT NULL AND source = 'website'
     ON CONFLICT (booking_id) DO NOTHING
-  `, [id]);
+  `, [id, Boolean(details), ...detailValues(details), includePrice]);
   const booking = await getBooking(id);
   if (booking.status !== "confirmed") throw new HttpError(409, "bookingState");
   return booking;
@@ -143,12 +158,13 @@ export async function getStats(period: Period): Promise<StudioStats> {
   const { start, end, days } = periodBounds(period);
   const endDate = isoDate(end);
   const [rollup, recent] = await Promise.all([
-    query<Pick<StudioStats, "total" | "confirmed" | "pending" | "website" | "series" | "services">>(`
+    query<Pick<StudioStats, "total" | "confirmed" | "pending" | "website" | "series" | "services"> & { bookedCents: string }>(`
       WITH matching AS (
         SELECT * FROM studio.bookings WHERE event_date >= $1 AND event_date < $2
       ), series AS (
         SELECT (CASE WHEN $3::text = 'year' THEN date_trunc('month', event_date::timestamp)::date ELSE event_date END)::text AS date,
-          count(*)::integer AS total, (count(*) FILTER (WHERE status = 'confirmed'))::integer AS confirmed
+          count(*)::integer AS total, (count(*) FILTER (WHERE status = 'confirmed'))::integer AS confirmed,
+          coalesce(sum(price_cents) FILTER (WHERE status = 'confirmed'), 0) AS "bookedCents"
         FROM matching GROUP BY 1
       ), categories AS (
         SELECT service, count(*)::integer AS total FROM matching GROUP BY service
@@ -157,6 +173,7 @@ export async function getStats(period: Period): Promise<StudioStats> {
         (count(*) FILTER (WHERE status = 'confirmed'))::integer AS confirmed,
         (count(*) FILTER (WHERE status = 'pending'))::integer AS pending,
         (count(*) FILTER (WHERE source = 'website'))::integer AS website,
+        coalesce(sum(price_cents) FILTER (WHERE status = 'confirmed'), 0) AS "bookedCents",
         coalesce((SELECT json_agg(series) FROM series), '[]'::json) AS series,
         coalesce((SELECT json_agg(categories ORDER BY total DESC, service) FROM categories), '[]'::json) AS services
       FROM matching
@@ -172,9 +189,10 @@ export async function getStats(period: Period): Promise<StudioStats> {
   end.setUTCDate(end.getUTCDate() - 1);
   return {
     ...result,
+    bookedCents: Number(result.bookedCents),
     start,
     end: isoDate(end),
-    series: days.map((date) => buckets.get(date) ?? { date, total: 0, confirmed: 0 }),
+    series: days.map((date) => buckets.get(date) ?? { date, total: 0, confirmed: 0, bookedCents: 0 }),
     recent: recent.rows,
   };
 }

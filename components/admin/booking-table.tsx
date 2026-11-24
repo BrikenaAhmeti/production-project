@@ -4,8 +4,9 @@ import { ChevronRight, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DatePicker, SelectMenu } from "@/components/controls";
 import { useLocale } from "@/components/locale";
+import { formatBookingTime, formatEuros } from "@/lib/booking-details";
 import { formatDate } from "@/lib/dates";
-import { common, errorLabel, serviceLabel, statusLabel } from "@/lib/i18n";
+import { bookingDetails, common, errorLabel, serviceLabel, statusLabel } from "@/lib/i18n";
 import { services, statuses, type Booking, type BookingList, type BookingStatus, type Service } from "@/lib/model";
 import { EmptyState, ErrorState, LoadingState, Pagination, StatusBadge, useResource } from "./ui";
 
@@ -26,6 +27,7 @@ export function BookingTable({ bookings, onOpen, compact = false }: {
         <th scope="col">{sq ? "Klienti" : "Client"}</th>
         <th scope="col">{t.service}</th>
         <th scope="col">{t.date}</th>
+        <th scope="col">{bookingDetails[locale].price}</th>
         <th scope="col">{sq ? "Gjendja" : "Status"}</th>
         {!compact && <th scope="col">{sq ? "Burimi" : "Source"}</th>}
         <th scope="col"><span className="sr-only">{sq ? "Detajet" : "Details"}</span></th>
@@ -34,7 +36,9 @@ export function BookingTable({ bookings, onOpen, compact = false }: {
         <td><button type="button" className="table-name" onClick={() => onOpen(item.id)}>{item.name}</button>
           {!compact && (item.email || item.phone) && <small>{item.email || item.phone}</small>}</td>
         <td>{serviceLabel(item.service, locale)}</td>
-        <td className="cell-nowrap">{formatDate(item.eventDate, locale)}</td>
+        <td className="cell-nowrap">{formatDate(item.eventDate, locale)}
+          {item.startTime && <small>{formatBookingTime(item, locale)}</small>}</td>
+        <td className="cell-nowrap">{item.priceCents == null ? "—" : formatEuros(item.priceCents, locale)}</td>
         <td><StatusBadge status={item.status}/></td>
         {!compact && <td><span className="source-pill">{item.source === "website" ? (sq ? "Faqja" : "Website") : (sq ? "Manual" : "Manual")}</span></td>}
         <td className="table-detail"><button type="button" className="icon-button" aria-label={sq ? `Hap rezervimin e ${item.name}` : `Open booking for ${item.name}`} onClick={() => onOpen(item.id)}><ChevronRight size={17}/></button></td>

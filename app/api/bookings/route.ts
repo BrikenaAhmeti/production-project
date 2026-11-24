@@ -11,7 +11,8 @@ export async function POST(request: Request) {
     if (input.website) return json({ ok: true }, 201);
     if (input.eventDate < todayIn(process.env.STUDIO_TIMEZONE)) throw new HttpError(422, "pastDate");
     await takeRateLimit("booking", clientAddress(request), 12, 15 * 60);
-    await insertBooking(input, input.requestId);
+    const details = input.schedule && { ...input.schedule, priceCents: null };
+    await insertBooking({ ...input, details }, input.requestId);
     return json({ ok: true }, 201);
   } catch (error) {
     return respondToError(error);

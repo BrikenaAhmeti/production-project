@@ -30,8 +30,26 @@ export const bookingInput = z.object({
   language: z.enum(["sq", "en"]).default("sq"),
 });
 
+const bookingTime = z.string().trim().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/)
+  .or(z.literal("")).default("").transform((value) => value || null);
+
+const bookingScheduleInput = z.object({
+  startTime: bookingTime,
+  endTime: bookingTime,
+}).refine(({ startTime, endTime }) => !endTime || (startTime && startTime !== endTime), { path: ["endTime"] });
+
+export const bookingDetailsInput = bookingScheduleInput.safeExtend({
+  price: z.string().trim().regex(/^\d{1,7}(?:[.,]\d{1,2})?$/).or(z.literal("")).default("")
+    .transform((value) => value ? Math.round(Number(value.replace(",", ".")) * 100) : null),
+}).transform(({ price, ...schedule }) => ({ ...schedule, priceCents: price }));
+
+export const adminBookingInput = bookingInput.extend({
+  details: bookingDetailsInput.optional(),
+});
+
 export const websiteBookingInput = bookingInput.extend({
   requestId: z.uuid(),
+  schedule: bookingScheduleInput.optional(),
   website: optionalText(200),
 }).refine((value) => value.phone.length > 0, { path: ["phone"] });
 
@@ -66,7 +84,8 @@ export const contactInput = z.object({
   mapUrl: httpsUrl,
 });
 
-export type BookingInput = z.infer<typeof bookingInput>;
+export type AdminBookingInput = z.infer<typeof adminBookingInput>;
+export type BookingDetailsInput = z.infer<typeof bookingDetailsInput>;
 export type BookingFilters = z.infer<typeof bookingFilters>;
 export type GalleryInput = z.infer<typeof galleryInput>;
 export type ContactInput = z.infer<typeof contactInput>;

@@ -33,12 +33,20 @@ export const common = {
   },
 };
 
+export const bookingDetails = {
+  sq: { price: "Çmimi", start: "Ora e fillimit", end: "Ora e mbarimit", time: "Orari", value: "Vlera e rezervuar" },
+  en: { price: "Price", start: "Start time", end: "Finish time", time: "Schedule", value: "Booked value" },
+};
+
 const errors: Record<string, Record<Locale, string>> = {
   invalid: { sq: "Kontrollo të dhënat dhe provo përsëri.", en: "Check your details and try again." },
   phone: { sq: "Shkruaj një numër telefoni të vlefshëm.", en: "Enter a valid phone number." },
   email: { sq: "Shkruaj një adresë emaili të vlefshme.", en: "Enter a valid email address." },
   service: { sq: "Zgjidh një shërbim.", en: "Choose a service." },
   eventDate: { sq: "Zgjidh një datë.", en: "Choose a date." },
+  price: { sq: "Shkruaj një çmim në euro me deri në dy shifra pas presjes.", en: "Enter a euro price with up to two decimal places." },
+  startTime: { sq: "Shkruaj një orë të vlefshme fillimi.", en: "Enter a valid start time." },
+  endTime: { sq: "Zgjidh një orë mbarimi të ndryshme nga ora e fillimit.", en: "Enter a finish time and a different start time." },
   pastDate: { sq: "Zgjidh datën e sotme ose një datë të ardhshme.", en: "Choose today or a future date." },
   to: { sq: "Data e fundit duhet të jetë pas datës së fillimit.", en: "The end date must be on or after the start date." },
   credentials: { sq: "Emaili ose fjalëkalimi është i pasaktë.", en: "The email or password is incorrect." },
